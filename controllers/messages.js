@@ -4,13 +4,12 @@ const openai = new OpenAI();
 
 const CLIENT_ID = process.env.CLIENT_ID
 const CLIENT_SECRET = process.env.CLIENT_SECRET
-const ACCESS_TOKEN = process.env.ACCESS_TOKEN
+
 
 module.exports = {
     getMessages,
     createMessage,
     sendToAI,
-    getAuth,
     getSong
 };
 
@@ -50,34 +49,27 @@ async function sendToAI(req, res) {
     }
 }
 
-
-// Useless, remember to remove this
-async function getAuth(req, res) {
-
-
-    try {
-        const spotifyRes = await fetch("https://accounts.spotify.com/api/token", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded"
-            },
-            body: `grant_type=client_credentials&client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}`
-
-        })
-
-        const spotifyData = await spotifyRes.json()
-        res.status(200).json(spotifyData)
-    } catch (err) {
-        res.status(400).json(err)
-    }
-}
-
 async function getSong(req, res) {
     try {
 
-        const songName = req.body.songName
-        const artist = req.body.artist
-        console.log(req.body)
+        const message = req.body
+        console.log(message)
+
+        // Retrieve AI Response to user message
+        const completion = await openai.chat.completions.create({
+            messages: [
+                { role: "system", content: "You are a happy go lucky AI assistant who helps recommend music to users. You should respond to users with a single and specific song recommendation in json format: {songName: songName, artistName: artistName" },
+                {role: "user", content: message.message }
+            ],
+            model: "gpt-3.5-turbo",
+        });
+
+
+        const songName = JSON.parse(completion.choices[0].message.content).songName
+        const artist = JSON.parse(completion.choices[0].message.content).artist
+
+        
+        
         
         // Retrieve spotify access token
         const spotifyAuth = await fetch("https://accounts.spotify.com/api/token", {
@@ -103,7 +95,7 @@ async function getSong(req, res) {
 
         const songId = searchData.tracks.items[0].id
         
-        
+        console.log(songId)
         res.status(200).json(songId)
     } catch (err) {
         res.status(400).json(err)
