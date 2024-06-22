@@ -63,13 +63,12 @@ async function getSong(req, res) {
             model: "gpt-3.5-turbo",
         });
 
-        // const songRecc = JSON.parse(completion.choices[0].message.content) 
         const aiResponse = completion.choices[0].message.content
         const songObjIndex = aiResponse.indexOf("{")
         const songObj = aiResponse.slice(songObjIndex)
-        
-        
-        
+
+        const songExplanation = aiResponse.slice(0, songObjIndex)
+        console.log(songExplanation)
         
         
         // Retrieve spotify access token
@@ -84,7 +83,7 @@ async function getSong(req, res) {
         const authData = await spotifyAuth.json()
 
 
-        // Retrieve users search results
+        // Search for song on Spotify based on GPT's response
         const spotifySearchRes = await fetch(`https://api.spotify.com/v1/search?q=remaster%2520track%3A${JSON.parse(songObj).songName}%252520artist%253A${JSON.parse(songObj).artistName}&type=track`, {
             headers: {
                 'Content-Type': 'application/json',
@@ -93,8 +92,10 @@ async function getSong(req, res) {
         })
         const searchData = await spotifySearchRes.json()
         const songId = searchData.tracks.items[0].id
+
+        const songArr = [songExplanation, songId]
         
-        res.status(200).json(songId)
+        res.status(200).json(songArr)
     } catch (err) {
         res.status(400).json(err)
     }
