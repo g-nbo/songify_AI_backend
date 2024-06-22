@@ -1,5 +1,6 @@
 // Requiring and configuring the .env file to access its variables
 require('dotenv').config();
+const cors = require("cors")
 // Requiring express
 const express = require('express');
 // Creating the express server and storing inside the app variable
@@ -11,6 +12,7 @@ const userRouter = require('./routes/users.js');
 const messageRouter = require('./routes/messages.js')
 
 // Configuring the server to accept and parse JSON data.
+app.use(cors());
 app.use(express.json());
 
 //Custom Middlware
