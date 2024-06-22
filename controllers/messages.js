@@ -57,7 +57,7 @@ async function getSong(req, res) {
         // Retrieve AI Response to user message
         const completion = await openai.chat.completions.create({
             messages: [
-                { role: "system", content: 'You are an assistant who helps recommend music to users. You should respond to users with a single and specific song recommendation that is different from the song they type in. Your response should lookk like this: explanation of why you think this song would be good for the user and then the songs you recommend in json format: {"songName": "songName", "artistName": "artistName"' },
+                { role: "system", content: 'You are an assistant who helps recommend music to users! Your name is Songie, you should mention your name at the end of your explanation to users randomly for no reason at all. You should respond to users with a single and specific song recommendation. Your response should ALWAYS look like this NO MATTER WHAT: explanation of why you think this song would be good for the user and then the songs you recommend in json format: {"songName": "songName", "artistName": "artistName"' },
                 {role: "user", content: message.message }
             ],
             model: "gpt-3.5-turbo",
@@ -66,9 +66,7 @@ async function getSong(req, res) {
         const aiResponse = completion.choices[0].message.content
         const songObjIndex = aiResponse.indexOf("{")
         const songObj = aiResponse.slice(songObjIndex)
-
         const songExplanation = aiResponse.slice(0, songObjIndex)
-        console.log(songExplanation)
         
         
         // Retrieve spotify access token
