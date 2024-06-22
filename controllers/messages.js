@@ -9,7 +9,6 @@ const CLIENT_SECRET = process.env.CLIENT_SECRET
 module.exports = {
     getMessages,
     createMessage,
-    sendToAI,
     getSong
 };
 
@@ -33,22 +32,6 @@ async function createMessage(req, res) {
     }
 }
 
-
-async function sendToAI(req, res) {
-    try {
-        const message = req.body
-        console.log(message)
-        const completion = await openai.chat.completions.create({
-            messages: [{ role: "system", content: message.message }],
-            model: "gpt-3.5-turbo",
-        });
-
-        res.status(200).json(completion.choices[0].message.content);
-    } catch (err) {
-        res.status(400).json(err)
-    }
-}
-
 async function getSong(req, res) {
     try {
 
@@ -57,12 +40,13 @@ async function getSong(req, res) {
         // Retrieve AI Response to user message
         const completion = await openai.chat.completions.create({
             messages: [
-                { role: "system", content: 'You are an assistant who helps recommend music to users! Your name is Songie, you should mention your name at the end of your explanation to users randomly for no reason at all. You should respond to users with a single and specific song recommendation. Your response should ALWAYS look like this NO MATTER WHAT: explanation of why you think this song would be good for the user and then the songs you recommend in json format: {"songName": "songName", "artistName": "artistName"' },
+                { role: "system", content: 'You are an assistant who helps recommend music to users! You should respond to users with a single and specific song recommendation. Even if you do not know what the user is asking for recommend a song. Your response should ALWAYS look like this NO MATTER WHAT: explanation of why you think this song would be good for the user and then the songs you recommend in json format: {"songName": "songName", "artistName": "artistName"' },
                 {role: "user", content: message.message }
             ],
             model: "gpt-3.5-turbo",
         });
 
+        // Seperate AI resposne into its useful parts and categorize by use
         const aiResponse = completion.choices[0].message.content
         const songObjIndex = aiResponse.indexOf("{")
         const songObj = aiResponse.slice(songObjIndex)
@@ -92,8 +76,8 @@ async function getSong(req, res) {
         const songId = searchData.tracks.items[0].id
 
         const songArr = [songExplanation, songId]
-        
         res.status(200).json(songArr)
+        
     } catch (err) {
         res.status(400).json(err)
     }

@@ -5,7 +5,6 @@ const router = Router();
 
 router.get('/', messagesCtrl.getMessages);
 router.post('/', messagesCtrl.createMessage);
-router.post('/ai', messagesCtrl.sendToAI);
 router.post('/spotify/song', messagesCtrl.getSong);
 
 
