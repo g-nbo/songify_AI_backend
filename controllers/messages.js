@@ -53,21 +53,22 @@ async function getSong(req, res) {
     try {
 
         const message = req.body
-        console.log(message)
 
         // Retrieve AI Response to user message
         const completion = await openai.chat.completions.create({
             messages: [
-                { role: "system", content: "You are a happy go lucky AI assistant who helps recommend music to users. You should respond to users with a single and specific song recommendation in json format: {songName: songName, artistName: artistName" },
+                { role: "system", content: 'You are an assistant who helps recommend music to users. You should respond to users with a single and specific song recommendation that is different from the song they type in. Your response should lookk like this: explanation of why you think this song would be good for the user and then the songs you recommend in json format: {"songName": "songName", "artistName": "artistName"' },
                 {role: "user", content: message.message }
             ],
             model: "gpt-3.5-turbo",
         });
 
-
-        const songName = JSON.parse(completion.choices[0].message.content).songName
-        const artist = JSON.parse(completion.choices[0].message.content).artist
-
+        // const songRecc = JSON.parse(completion.choices[0].message.content) 
+        const aiResponse = completion.choices[0].message.content
+        const songObjIndex = aiResponse.indexOf("{")
+        const songObj = aiResponse.slice(songObjIndex)
+        
+        
         
         
         
@@ -84,18 +85,15 @@ async function getSong(req, res) {
 
 
         // Retrieve users search results
-        const spotifySearchRes = await fetch(`https://api.spotify.com/v1/search?q=%25track%A3${songName}%2520artist%A3${artist}%25&type=track&limit=1`, {
+        const spotifySearchRes = await fetch(`https://api.spotify.com/v1/search?q=remaster%2520track%3A${JSON.parse(songObj).songName}%252520artist%253A${JSON.parse(songObj).artistName}&type=track`, {
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + authData.access_token
             }
         })
-
         const searchData = await spotifySearchRes.json()
-
         const songId = searchData.tracks.items[0].id
         
-        console.log(songId)
         res.status(200).json(songId)
     } catch (err) {
         res.status(400).json(err)
