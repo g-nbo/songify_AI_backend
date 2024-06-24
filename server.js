@@ -9,11 +9,15 @@ const app = express();
 const PORT = process.env.PORT || 8000;
 // Requiring example router
 const userRouter = require('./routes/users.js');
-const messageRouter = require('./routes/messages.js')
+const songifyRouter = require('./routes/songify.js')
+
 
 // Configuring the server to accept and parse JSON data.
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: false }))
+
+
 
 //Custom Middlware
 app.use((req, res, next) => {
@@ -23,7 +27,7 @@ app.use((req, res, next) => {
 
 // Connecting the router to the server
 app.use('/users', userRouter);
-app.use('/messages', messageRouter);
+app.use('/songify', songifyRouter);
 
 app.get('/', (req, res) => {
   res.send("Home")

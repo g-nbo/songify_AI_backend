@@ -1,5 +1,6 @@
 const Message = require('../models/Message');
-const OpenAI = require('openai')
+const OpenAI = require('openai');
+const User = require('../models/User');
 const openai = new OpenAI();
 
 const CLIENT_ID = process.env.CLIENT_ID
@@ -7,29 +8,54 @@ const CLIENT_SECRET = process.env.CLIENT_SECRET
 
 
 module.exports = {
-    getMessages,
-    createMessage,
-    getSong
+    getSong,
+    createFavorite,
+    readFavorites,
+    deleteFavorite
 };
 
-async function getMessages(req, res) {
+async function createFavorite(req, res) {
     try {
-        const messages = await Message.find({});
+        const user = await User.findOne({ email: req.body.email })
 
-        res.status(200).json(messages);
+        const favorites = user.favorites
+
+        const songId = req.body.songId
+
+        favorites.push(songId)
+        user.save();
+
+        res.status(200).json(favorites);
     } catch (err) {
         res.status(400).json(err);
     }
 }
 
-async function createMessage(req, res) {
+async function readFavorites(req, res) {
     try {
-        const message = await Message.create(req.body);
+        const user = await User.findById(req.params.id)
 
-        res.status(200).json(message);
+        const favorites = user.favorites
+
+        res.status(200).json(favorites);
     } catch (err) {
         res.status(400).json(err);
     }
+}
+
+async function deleteFavorite(req, res) {
+    try {
+        const user = await User.findById(req.body.id)
+        const favoriteIndex = user.favorites.indexOf(req.body.favorite)
+
+        user.favorites.splice(favoriteIndex, 1)
+        user.save()
+
+        res.status(200).json(user.favorites)
+    } catch (err) {
+        res.status(400).json(err)
+    }
+
 }
 
 async function getSong(req, res) {
@@ -37,11 +63,11 @@ async function getSong(req, res) {
 
         const message = req.body
 
-        // Retrieve AI Response to user message
+        // Retrieve AI Response to users message
         const completion = await openai.chat.completions.create({
             messages: [
-                { role: "system", content: 'You are an assistant who helps recommend music to users! You should respond to users with a single and specific song recommendation. Even if you do not know what the user is asking for recommend a song. Your response should ALWAYS look like this NO MATTER WHAT: explanation of why you think this song would be good for the user and then the songs you recommend in json format: {"songName": "songName", "artistName": "artistName"' },
-                {role: "user", content: message.message }
+                { role: "system", content: 'You are an assistant who helps recommend music to users! You should respond to users with a single and specific song recommendation. Even if you do not know what the user is asking for recommend a song. Even if the user asks for multiple songs, only give one song at a time. Try to recommend a song as recent as possible. Your response should ALWAYS look like this NO MATTER WHAT: explanation of why you think this song would be good for the user and then the songs you recommend in json format: {"songName": "songName", "artistName": "artistName"' },
+                { role: "user", content: message.message }
             ],
             model: "gpt-3.5-turbo",
         });
@@ -51,9 +77,10 @@ async function getSong(req, res) {
         const songObjIndex = aiResponse.indexOf("{")
         const songObj = aiResponse.slice(songObjIndex)
         const songExplanation = aiResponse.slice(0, songObjIndex)
-        
-        
-        // Retrieve spotify access token
+
+
+        // Retrieve spotify access token 
+        // NOTE: Spotify access token resets every hour
         const spotifyAuth = await fetch("https://accounts.spotify.com/api/token", {
             method: "POST",
             headers: {
@@ -73,12 +100,16 @@ async function getSong(req, res) {
             }
         })
         const searchData = await spotifySearchRes.json()
+
+        // Grab the song id that resulted from the spotify search
         const songId = searchData.tracks.items[0].id
 
+        // Send back GPT's explanation and recommended song id to front-end
         const songArr = [songExplanation, songId]
         res.status(200).json(songArr)
-        
+
     } catch (err) {
         res.status(400).json(err)
     }
 }
+
