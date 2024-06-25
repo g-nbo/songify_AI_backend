@@ -9,6 +9,7 @@ module.exports = {
 
 const users = []
 
+// Create a single user
 async function createUser(req, res) {
   try {
     console.log(req.body)
@@ -20,6 +21,7 @@ async function createUser(req, res) {
   }
 }
 
+// Login to front end by checking if credentials are correct
 async function loginUser(req, res) {
   try {
 
@@ -43,6 +45,7 @@ async function loginUser(req, res) {
 
 }
 
+// Update users name
 async function updateName(req, res) {
   try {
     const user = await User.findByIdAndUpdate(req.body.id, { name: req.body.name }, { new: true })

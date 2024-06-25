@@ -25,3 +25,4 @@ const userSchema = Schema({
 });
 
 module.exports = model('User', userSchema);
+userSchema.index({ email: 1, type: 1 });
