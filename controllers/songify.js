@@ -6,7 +6,6 @@ const openai = new OpenAI();
 const CLIENT_ID = process.env.CLIENT_ID
 const CLIENT_SECRET = process.env.CLIENT_SECRET
 
-
 module.exports = {
     getSong,
     createFavorite,
@@ -14,8 +13,10 @@ module.exports = {
     deleteFavorite
 };
 
+// Add a favorite to users favorite array in db
 async function createFavorite(req, res) {
     try {
+
         const user = await User.findOne({ email: req.body.email })
 
         const favorites = user.favorites
@@ -31,6 +32,7 @@ async function createFavorite(req, res) {
     }
 }
 
+// Find users favorite array and send back as res
 async function readFavorites(req, res) {
     try {
         const user = await User.findById(req.params.id)
@@ -43,6 +45,7 @@ async function readFavorites(req, res) {
     }
 }
 
+// Delete a single desired favorite from users favorites array
 async function deleteFavorite(req, res) {
     try {
         const user = await User.findById(req.body.id)
@@ -58,6 +61,7 @@ async function deleteFavorite(req, res) {
 
 }
 
+// This is how users gets recommended a song
 async function getSong(req, res) {
     try {
 

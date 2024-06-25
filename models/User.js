@@ -20,6 +20,7 @@ const userSchema = Schema({
   favorites: {
     type: Array,
     required: true,
+    
   }
 });
 
