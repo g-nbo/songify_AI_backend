@@ -11,12 +11,16 @@ module.exports = {
 };
 
 async function createUser(req, res) {
+  console.log('[register] body keys:', Object.keys(req.body));
+  console.log('[register] email:', req.body.email, '| name:', req.body.name, '| has password:', !!req.body.password);
   try {
     const hashed = await bcrypt.hash(req.body.password, 12);
     const user = await User.create({ ...req.body, password: hashed });
     const { password: _, ...safeUser } = user.toObject();
+    console.log('[register] success for:', req.body.email);
     res.status(201).json(safeUser);
   } catch (err) {
+    console.error('[register] error:', err.name, err.message, err.code || '');
     res.status(400).json({ message: err.message });
   }
 }
