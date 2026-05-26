@@ -1,44 +1,29 @@
-// Requiring and configuring the .env file to access its variables
 require('dotenv').config();
-const cors = require("cors")
-// Requiring express
+const cors = require('cors');
+const cookieParser = require('cookie-parser');
 const express = require('express');
-// Creating the express server and storing inside the app variable
 const app = express();
-// Port in which the server will run on
 const PORT = process.env.PORT || 8000;
-// Requiring example router
 const userRouter = require('./routes/users.js');
-const songifyRouter = require('./routes/songify.js')
+const songifyRouter = require('./routes/songify.js');
 
-
-// Configuring the server to accept and parse JSON data.
-app.use(cors());
+app.use(cors({
+  origin: process.env.CLIENT_URL,
+  credentials: true,
+}));
+app.use(cookieParser());
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }))
+app.use(express.urlencoded({ extended: false }));
 
-
-
-//Custom Middlware
-app.use((req, res, next) => {
-  console.log(`A ${req.method} request was made to ${req.url}`);
-  next();
-});
-
-// Connecting the router to the server
 app.use('/users', userRouter);
 app.use('/songify', songifyRouter);
 
-app.get('/', (req, res) => {
-  res.send("Home")
-})
+app.get('/', (req, res) => res.send('OK'));
 
-// Error Handling Middlware
 app.use((err, req, res, next) => {
-  res.status(500).send('Something went wrong.');
+  res.status(500).json({ message: 'Something went wrong' });
 });
 
-// Calling the listen function telling the server to listen on port 3000
 app.listen(PORT, () => {
   console.log(`Listening on port: ${PORT}`);
 });
