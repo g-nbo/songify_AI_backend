@@ -13,8 +13,6 @@ const userSchema = Schema({
   password: {
     type: String,
     required: true,
-    unique: false,
-    min: 5,
   },
   favorites: {
     type: Array,
@@ -22,5 +20,6 @@ const userSchema = Schema({
   }
 });
 
+userSchema.index({ email: 1 });
+
 module.exports = model('User', userSchema);
-userSchema.index({ email: 1, type: 1 });
