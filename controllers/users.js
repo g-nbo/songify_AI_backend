@@ -11,16 +11,32 @@ module.exports = {
 };
 
 async function createUser(req, res) {
+  const { name, email, password } = req.body;
+
+  if (!name || name.trim().length < 2) {
+    return res.status(400).json({ message: 'Name must be at least 2 characters.' });
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!email || !emailRegex.test(email)) {
+    return res.status(400).json({ message: 'A valid email address is required.' });
+  }
+
+  if (!password || password.length < 8) {
+    return res.status(400).json({ message: 'Password must be at least 8 characters.' });
+  }
+
   try {
-    console.log(`[register] attempt for email ${req.body.email}`);
-    const hashed = await bcrypt.hash(req.body.password, 12);
+    console.log(`[register] attempt for email ${email}`);
+    const hashed = await bcrypt.hash(password, 12);
     const user = await User.create({ ...req.body, password: hashed });
     const { password: _, ...safeUser } = user.toObject();
-    console.log(`[register] success for email ${req.body.email}`);
+    console.log(`[register] success for email ${email}`);
     res.status(201).json(safeUser);
   } catch (err) {
     console.error(`[register] error: ${err.message}`);
-    res.status(400).json({ message: err.message });
+    const isDuplicate = err.code === 11000;
+    res.status(400).json({ message: isDuplicate ? 'An account with this email already exists.' : err.message });
   }
 }
 
