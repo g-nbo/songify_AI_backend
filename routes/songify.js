@@ -10,5 +10,6 @@ router.post('/favorite', songifyCtrl.createFavorite);
 router.post('/song', songifyCtrl.getSong);
 router.delete('/favorite/delete', songifyCtrl.deleteFavorite);
 router.get('/favorite/:id', songifyCtrl.readFavorites);
+router.get('/track/:id', songifyCtrl.getTrack);
 
 module.exports = router;
