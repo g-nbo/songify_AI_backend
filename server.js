@@ -1,6 +1,7 @@
 require('dotenv').config();
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
+const morgan = require('morgan');
 const express = require('express');
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -14,6 +15,7 @@ app.use(cors({
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(morgan('[:date[iso]] :method :url :status :response-time ms'));
 
 app.use('/users', userRouter);
 app.use('/songify', songifyRouter);
@@ -21,9 +23,10 @@ app.use('/songify', songifyRouter);
 app.get('/', (req, res) => res.send('OK'));
 
 app.use((err, req, res, next) => {
+  console.error(`[error] ${err.message}`, { stack: err.stack });
   res.status(500).json({ message: 'Something went wrong' });
 });
 
 app.listen(PORT, () => {
-  console.log(`Listening on port: ${PORT}`);
+  console.log(`[server] listening on port ${PORT}`);
 });
