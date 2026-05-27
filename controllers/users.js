@@ -41,8 +41,8 @@ async function loginUser(req, res) {
 
     res.cookie('refreshToken', refresh, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      secure: true,
+      sameSite: 'none', // cross-origin: frontend (Netlify) → backend (Render)
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -64,13 +64,13 @@ async function refreshToken(req, res) {
     const accessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '15m' });
     res.status(200).json({ user, accessToken });
   } catch (err) {
-    res.clearCookie('refreshToken');
+    res.clearCookie('refreshToken', { httpOnly: true, secure: true, sameSite: 'none' });
     res.status(401).json({ message: 'Invalid refresh token' });
   }
 }
 
 async function logoutUser(req, res) {
-  res.clearCookie('refreshToken');
+  res.clearCookie('refreshToken', { httpOnly: true, secure: true, sameSite: 'none' });
   res.status(200).json({ message: 'Logged out' });
 }
 
